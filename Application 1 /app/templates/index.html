@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Rule Engine</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8">Easy Rule Engine</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">What is this?</h2>
+            <p class="mb-4">
+                This Easy Rule Engine helps you create and evaluate simple rules for data. You can use it to check if certain conditions are met in your data.
+            </p>
+            <p>
+                For example, you can create a rule like "age > 18 AND (department = 'Sales' OR experience > 5)" to find people who are over 18 and either work in Sales or have more than 5 years of experience.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Step 1: Create a Rule</h2>
+            <p class="mb-4">Enter your rule below. Use AND, OR, parentheses (), and comparisons (>, <, =).</p>
+            <div class="mb-4">
+                <label for="rule" class="block mb-2">Your Rule:</label>
+                <input type="text" id="rule" class="w-full p-2 border rounded" placeholder="e.g., age > 18 AND (department = 'Sales' OR experience > 5)">
+            </div>
+            <button id="create-rule" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Create Rule</button>
+            <div id="rule-result" class="mt-4 hidden"></div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Step 2: Test Your Rule</h2>
+            <p class="mb-4">Enter some data to test against your rule. Use JSON format.</p>
+            <div class="mb-4">
+                <label for="data" class="block mb-2">Test Data (JSON):</label>
+                <textarea id="data" class="w-full p-2 border rounded" rows="4" placeholder='{"age": 25, "department": "Sales", "experience": 3}'></textarea>
+            </div>
+            <button id="evaluate-rule" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Test Rule</button>
+            <div id="evaluation-result" class="mt-4 hidden"></div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-semibold mb-4">Need Help?</h2>
+            <p class="mb-4">Here are some example rules you can try:</p>
+            <ul class="list-disc pl-5 mb-4">
+                <li>age > 18 AND department = 'Marketing'</li>
+                <li>(salary > 50000 OR experience > 5) AND position = 'Manager'</li>
+                <li>age < 30 AND (department = 'IT' OR department = 'Engineering')</li>
+            </ul>
+            <p>
+                Remember to match your test data to the attributes in your rule. For example, if your rule uses 'age', make sure your test data includes an 'age' field.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#create-rule').click(function() {
+                const ruleString = $('#rule').val();
+                $.ajax({
+                    type: 'POST',
+                    url: '/create_rule',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ rule_string: ruleString }),
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#rule-result').html('Rule created successfully!').removeClass('hidden bg-red-100 text-red-700').addClass('bg-green-100 text-green-700 p-2 rounded');
+                        } else {
+                            $('#rule-result').html('Error: ' + response.message).removeClass('hidden bg-green-100 text-green-700').addClass('bg-red-100 text-red-700 p-2 rounded');
+                        }
+                    },
+                    error: function(error) {
+                        $('#rule-result').html('Error creating rule: ' + error.responseJSON.message).removeClass('hidden bg-green-100 text-green-700').addClass('bg-red-100 text-red-700 p-2 rounded');
+                    }
+                });
+            });
+
+            $('#evaluate-rule').click(function() {
+                const ruleString = $('#rule').val();
+                const data = $('#data').val();
+                try {
+                    const parsedData = JSON.parse(data);
+                    $.ajax({
+                        type: 'POST',
+                        url: '/evaluate_rule',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ rule_string: ruleString, data: parsedData }),
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                const resultText = response.result ? 'Rule conditions met!' : 'Rule conditions not met.';
+                                const resultClass = response.result ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+                                $('#evaluation-result').html(resultText).removeClass('hidden bg-red-100 text-red-700').addClass(resultClass + ' p-2 rounded');
+                            } else {
+                                $('#evaluation-result').html('Error: ' + response.message).removeClass('hidden bg-green-100 text-green-700 bg-yellow-100 text-yellow-700').addClass('bg-red-100 text-red-700 p-2 rounded');
+                            }
+                        },
+                        error: function(error) {
+                            $('#evaluation-result').html('Error evaluating rule: ' + error.responseJSON.message).removeClass('hidden bg-green-100 text-green-700 bg-yellow-100 text-yellow-700').addClass('bg-red-100 text-red-700 p-2 rounded');
+                        }
+                    });
+                } catch (e) {
+                    $('#evaluation-result').html('Invalid JSON format in test data.').removeClass('hidden bg-green-100 text-green-700 bg-yellow-100 text-yellow-700').addClass('bg-red-100 text-red-700 p-2 rounded');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
