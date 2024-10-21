@@ -14,6 +14,11 @@ Components:
   https://github.com/user-attachments/assets/cbc514c8-4118-4506-84f8-1f090b2735cf
 
 
+
+
+  
+
+
 ## Application 2: Real-Time Weather Monitoring System
 
 A real-time data processing system for monitoring weather conditions and providing summarized insights using rollups and aggregates. This application utilizes data from the OpenWeatherMap API.
